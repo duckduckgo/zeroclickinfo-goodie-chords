@@ -118,18 +118,17 @@ sub sharp_to_flat {
 }
 
 sub write_midi_js {
-    share('SoundManager2/script/soundmanager2-jsmin.js')->slurp .
 <<EOF;
-soundManager.setup({
-    url: '/.../swf/',
-    preferFlash: false,
-    onready: function() { 
-        ${\join("\n", map { "soundManager.createSound('$_', '/.../$_.mp3');" } @_)}
-    }
-});
-function play_chord(notes) {
-    notes.forEach(function(note){soundManager.play(note)}) // TODO: add a delay between notes
-}
+function loadJS(path, callback){var element=nrj(path,false);YAHOO.util.Event.addListener(element,"load",callback);return element}
+loadJS("/soundmanager2/script/soundmanager2-nodebug-jsmin.js", function() {
+    soundManager.setup({
+        url: '/soundmanager2/swf/',
+        preferFlash: false,
+        onready: function() { 
+            ${\join("\n", map { "soundManager.createSound('$_', '/share/spice/chords/$_.mp3');" } @_)}
+        }
+})});
+function play_chord(notes) { notes.forEach(function(note){soundManager.play(note)}) // TODO: add a delay between notes }
 EOF
 }
 
