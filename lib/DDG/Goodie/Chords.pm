@@ -34,16 +34,16 @@ my %scales = (
 );
 
 my %chords = ( # 'x-' syntax here means a minor x
-    major => ["major", 0, 2, 4],
-    minor => ["minor", 0, 2, 4],
-    sus4  => ["major", 0, 3, 4],
-    sus2  => ["major", 0, 1, 4],
-    m7    => ["minor", 0, 2, 4, 6],
-    7     => ["major", 0, 2, 4, '6-'],
-    m9    => ["minor", 0, 2, 4, '6-', 8],
-    9     => ["major", 0, 2, 4, '6-', 8],
-    aug   => ["major", 0, 2, '4+'],
-    m     => ["minor", 0, 2, 4],
+    major => ["major", 0, 2,  4          ],
+    minor => ["minor", 0, 2,  4          ],
+    sus4  => ["major", 0, 3,  4          ],
+    sus2  => ["major", 0, 1,  4          ],
+    m7    => ["minor", 0, 2,  4,  6      ],
+    7     => ["major", 0, 2,  4, '6-'    ],
+    m9    => ["minor", 0, 2,  4, '6-', 8 ],
+    9     => ["major", 0, 2,  4, '6-', 8 ],
+    aug   => ["major", 0, 2, '4+'        ],
+    m     => ["minor", 0, 2,  4          ],
 );
 
 my $regex_chords = join('|', keys %chords);
@@ -117,18 +117,19 @@ sub sharp_to_flat {
     $rkeys{wrap $keys{$_[0]}+0.5};
 }
 
-sub write_midi_js {
+my $soundmanager_root = -e './share/goodie/chords/SoundManager2' ? '/share/goodie/chords/SoundManager2' : '/soundmanager2';
+sub write_js {
 <<EOF;
 function loadJS(path, callback){var element=nrj(path,false);YAHOO.util.Event.addListener(element,"load",callback);return element}
-loadJS("/soundmanager2/script/soundmanager2-nodebug-jsmin.js", function() {
+loadJS("$soundmanager_root/script/soundmanager2-nodebug-jsmin.js", function() {
     soundManager.setup({
-        url: '/soundmanager2/swf/',
+        url: '$soundmanager_root/swf/',
         preferFlash: false,
         onready: function() { 
-            ${\join("\n", map { "soundManager.createSound('$_', '/share/spice/chords/$_.mp3');" } @_)}
+            ${\join("\n", map { "soundManager.createSound('$_', '/share/goodie/chords/${_}4.mp3');" } @_)}
         }
 })});
-function play_chord(notes) { notes.forEach(function(note){soundManager.play(note)}) // TODO: add a delay between notes }
+function play_chord(notes) { notes.forEach(function(note){soundManager.play(note)}) /* TODO: Add delay between notes */ }
 EOF
 }
 
@@ -165,7 +166,7 @@ handle query_lc => sub {
     return $answer, html => $answer 
         . (defined $piano_gif ? "<br/><img alt='keyboard' src='data:image/gif;base64,$piano_gif' style='display:inline;margin-right:1em;'/>" : "")
         . (defined $guitar_gif ? "<img alt='guitar' src='data:image/gif;base64,$guitar_gif' style='display:inline;'/>" : "")
-        . "<script type='text/javascript'>".write_midi_js(@{$chord})."</script>"
+        . "<script type='text/javascript'>".write_js(@{$chord})."</script>"
         ;
 };
 
