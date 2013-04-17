@@ -117,6 +117,22 @@ sub sharp_to_flat {
     $rkeys{wrap $keys{$_[0]}+0.5};
 }
 
+sub write_midi_js {
+    share('SoundManager2/script/soundmanager2-jsmin.js')->slurp .
+<<EOF;
+soundManager.setup({
+    url: '/.../swf/',
+    preferFlash: false,
+    onready: function() { 
+        ${\join("\n", map { "soundManager.createSound('$_', '/.../$_.mp3');" } @_)}
+    }
+});
+function play_chord(notes) {
+    notes.forEach(function(note){soundManager.play(note)}) // TODO: add a delay between notes
+}
+EOF
+}
+
 my $piano = GD::Chord::Piano->new;
 my $guitar = GD::Tab::Guitar->new;
 
@@ -150,6 +166,7 @@ handle query_lc => sub {
     return $answer, html => $answer 
         . (defined $piano_gif ? "<br/><img alt='keyboard' src='data:image/gif;base64,$piano_gif' style='display:inline;margin-right:1em;'/>" : "")
         . (defined $guitar_gif ? "<img alt='guitar' src='data:image/gif;base64,$guitar_gif' style='display:inline;'/>" : "")
+        . "<script type='text/javascript'>".write_midi_js(@{$chord})."</script>"
         ;
 };
 

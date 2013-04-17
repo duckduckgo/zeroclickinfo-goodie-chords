@@ -1,0 +1,3 @@
+[submodule "share/goodie/chords/SoundManager2"]
+	path = share/goodie/chords/SoundManager2
+	url = git://github.com/scottschiller/SoundManager2.git
